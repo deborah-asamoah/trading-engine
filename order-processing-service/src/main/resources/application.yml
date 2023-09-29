@@ -1,0 +1,23 @@
+spring:
+  redis:
+    host: localhost
+    port: 6379
+  datasource:
+    url: jdbc:postgresql://localhost:5432/client-order-db
+    username: postgres
+    password: postgres
+  jpa:
+    show-sql: true
+    defer-datasource-initialization: true
+    hibernate:
+      format_sql: true
+      ddl-auto: update
+  sql:
+    init:
+      mode: always
+kafka:
+  bootstrapAddress: localhost:29092
+topic:
+  order-log: order-log-topic
+api:
+  key: eced7e6b-9223-414b-ae24-6a911c1aeadb

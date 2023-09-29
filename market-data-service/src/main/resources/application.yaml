@@ -1,0 +1,17 @@
+spring:
+  redis:
+    host: localhost
+    port: 6379
+api:
+  key: eced7e6b-9223-414b-ae24-6a911c1aeadb
+ws:
+  market-data:
+    url: /market-data/update
+  order-book:
+    url: /order-book/update
+  trend:
+    url: /trend/update
+  subscribe:
+    url: /market-data/subscribe
+server:
+  port: 8081

@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/client-order-db
+    username: postgres
+    password: postgres
+  jpa:
+    show-sql: true
+    hibernate:
+      format_sql: true
+      ddl-auto: update
+
+kafka:
+  bootstrapAddress: localhost:29092
+topic:
+  client-log: client-log-topic
+
+server:
+  port: 8083
+
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      refreshExpiration: 86400000
+      expiration: 86400000

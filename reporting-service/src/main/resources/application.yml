@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/reporting-service
+    username: postgres
+    password: default
+  jpa:
+    show-sql: true
+    hibernate:
+      format_sql: true
+      ddl-auto: update
+kafka:
+  bootstrapAddress: localhost:29092
+server:
+  port: 8082
