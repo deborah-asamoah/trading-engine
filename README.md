@@ -4,6 +4,12 @@ This trading engine is a multi-module springboot project. The database used for 
   - Market data service
   - Order processing service
   - Reporting Service
+    
+## Setting up postgres on docker
+Run this command in your terminal
+<pre>docker pull postgres</pre>
+Run this command to set your postgres password
+<pre>docker run -d -i --name postgres3 -p 5432:5432 -e POSTGRES_PASSWORD="SET_YOUR_POSTGRES_PASSWORD" postgres:latest</pre>
 
 ## Running the various microservices
 ### Client Service
