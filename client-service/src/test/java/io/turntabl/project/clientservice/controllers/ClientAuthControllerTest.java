@@ -78,7 +78,7 @@ class ClientAuthControllerTest {
     }
 
     @Test
-    @DisplayName("When calling the login endpoint should return status of created")
+    @DisplayName("When calling the endpoint end to get client details should return status of ok")
     public void testGetClientDetails() throws Exception {
 
         RequestBuilder builder = MockMvcRequestBuilders.get(BASEURL+"/client/"+ UUID.randomUUID())
