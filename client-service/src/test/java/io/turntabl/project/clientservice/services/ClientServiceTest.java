@@ -80,12 +80,18 @@ class ClientServiceTest {
     @BeforeEach
     void setUp (){
         uuid = UUID.fromString("c5b007d0-95b6-4f35-b010-339ab5669d20");
+        registerClientRequestBody = new RegisterClientRequestBody();
+        registerClientRequestBody.setName("John Doe");
+        registerClientRequestBody.setEmail("johndoe@example.com");
+        registerClientRequestBody.setPassword("password");
+
+        authenticateClientRequestBody = new AuthenticateClientRequestBody();
+        authenticateClientRequestBody.setEmail("johndoe@example.com");
+        authenticateClientRequestBody.setPassword("password");
     }
 
     @Test
     void registerClientWHenEmailDoesNotExists (){
-        registerClientRequestBody = new RegisterClientRequestBody("John Doe", "johndoe@example.com", "password");
-
         when(clientRepository.findByEmail(registerClientRequestBody.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(registerClientRequestBody.getPassword())).thenReturn("encodedPassword");
 
@@ -138,8 +144,6 @@ class ClientServiceTest {
 
     @Test
     void registerClientWhenEmailAlreadyExists (){
-        registerClientRequestBody = new RegisterClientRequestBody("John Doe", "johndoe@example.com", "password");
-
         when(clientRepository.findByEmail(registerClientRequestBody.getEmail())).thenReturn(Optional.of(new Client("John Doe", "johndoe@example.com", "password")));
 
         assertThrows(EmailAlreadyExists.class, ()-> underTest.registerClient(registerClientRequestBody));
@@ -152,10 +156,6 @@ class ClientServiceTest {
 
     @Test
     void authenticateClientWhenEmailExists (){
-        authenticateClientRequestBody = new AuthenticateClientRequestBody();
-        authenticateClientRequestBody.setEmail("johndoe@example.com");
-        authenticateClientRequestBody.setPassword("password");
-
         when(clientRepository.findByEmail(authenticateClientRequestBody.getEmail())).thenReturn(Optional.of(new Client()));
 
         UserDetailsImpl userDetails = new UserDetailsImpl(
@@ -193,10 +193,6 @@ class ClientServiceTest {
 
     @Test
     void authenticateClientWhenEmailDoesNotExists (){
-        authenticateClientRequestBody = new AuthenticateClientRequestBody();
-        authenticateClientRequestBody.setEmail("johndoe@example.com");
-        authenticateClientRequestBody.setPassword("password");
-
         when(clientRepository.findByEmail(authenticateClientRequestBody.getEmail())).thenReturn(Optional.empty());
 
         assertThrows(EmailDoesNotExists.class, ()-> underTest.authenticateClient(authenticateClientRequestBody));
