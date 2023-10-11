@@ -10,6 +10,8 @@ import io.turntabl.project.clientprocessingapi.enums.Role;
 import io.turntabl.project.clientservice.config.JwtUtils;
 import io.turntabl.project.clientservice.exceptions.EmailAlreadyExists;
 import io.turntabl.project.clientservice.exceptions.EmailDoesNotExists;
+import io.turntabl.project.clientservice.exceptions.InvalidPasswordException;
+import io.turntabl.project.clientservice.exceptions.NameCannotBeBlank;
 import io.turntabl.project.clientservice.mappers.ClientRequestBodyMapper;
 import io.turntabl.project.clientservice.mappers.PortfolioRequestBodyMapper;
 import io.turntabl.project.clientservice.userdetails.UserDetailsImpl;
@@ -91,7 +93,7 @@ class ClientServiceTest {
     }
 
     @Test
-    void registerClientWHenEmailDoesNotExists (){
+    void registerClientWHenEmailDoesNotExists () throws NameCannotBeBlank, InvalidPasswordException {
         when(clientRepository.findByEmail(registerClientRequestBody.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(registerClientRequestBody.getPassword())).thenReturn("encodedPassword");
 

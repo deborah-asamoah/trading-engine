@@ -1,10 +1,7 @@
 package io.turntabl.project.clientservice;
 
 
-import io.turntabl.project.clientservice.exceptions.EmailAlreadyExists;
-import io.turntabl.project.clientservice.exceptions.ExceptionResponse;
-import io.turntabl.project.clientservice.exceptions.PortfolioDoesNotExistException;
-import io.turntabl.project.clientservice.exceptions.EmailDoesNotExists;
+import io.turntabl.project.clientservice.exceptions.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -58,4 +55,30 @@ public class ClientServiceExceptionHandler {
 
                 ));
     }
+
+    @ExceptionHandler(NameCannotBeBlank.class)
+    public ResponseEntity<ExceptionResponse> handleBlankNameException(NameCannotBeBlank exception){
+        return ResponseEntity.status(404).body(
+                new ExceptionResponse(
+                        404,
+                        exception.getMessage(),
+                        "Username cannot be blank or empty"
+                )
+        );
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidPasswordException(InvalidPasswordException exception) {
+        return ResponseEntity.status(404)
+                .body(
+                    new ExceptionResponse(
+                            404,
+                            exception.getMessage(),
+                            "Invalid Password"
+                    )
+        );
+    }
+
+
+
 }

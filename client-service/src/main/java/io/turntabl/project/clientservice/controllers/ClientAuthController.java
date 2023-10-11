@@ -5,6 +5,8 @@ import io.turntabl.project.clientprocessingapi.dtos.requestbodies.AuthenticateCl
 import io.turntabl.project.clientprocessingapi.dtos.requestbodies.RegisterClientRequestBody;
 import io.turntabl.project.clientprocessingapi.dtos.responsebodies.AuthenticateClientResponseBody;
 import io.turntabl.project.clientprocessingapi.dtos.responsebodies.RegisterClientResponseBody;
+import io.turntabl.project.clientservice.exceptions.InvalidPasswordException;
+import io.turntabl.project.clientservice.exceptions.NameCannotBeBlank;
 import io.turntabl.project.clientservice.services.ClientService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class ClientAuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public RegisterClientResponseBody registerUser(@RequestBody RegisterClientRequestBody registerClientRequestBody) {
+    public RegisterClientResponseBody registerUser(@RequestBody RegisterClientRequestBody registerClientRequestBody) throws NameCannotBeBlank, InvalidPasswordException {
         return clientService.registerClient(registerClientRequestBody);
     }
 
