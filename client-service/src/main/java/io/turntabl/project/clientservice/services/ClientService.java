@@ -11,6 +11,8 @@ import io.turntabl.project.clientprocessingapi.enums.Role;
 import io.turntabl.project.clientservice.config.JwtUtils;
 import io.turntabl.project.clientservice.exceptions.EmailAlreadyExists;
 import io.turntabl.project.clientservice.exceptions.EmailDoesNotExists;
+import io.turntabl.project.clientservice.exceptions.InvalidPasswordException;
+import io.turntabl.project.clientservice.exceptions.NameCannotBeBlank;
 import io.turntabl.project.clientservice.mappers.ClientRequestBodyMapper;
 import io.turntabl.project.clientservice.mappers.PortfolioRequestBodyMapper;
 import io.turntabl.project.clientservice.userdetails.UserDetailsImpl;
@@ -23,6 +25,7 @@ import io.turntabl.project.persistence.repositories.PortfolioRepository;
 import io.turntabl.project.reportingcontract.enums.ClientEventType;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,22 +74,56 @@ public class ClientService {
         this.loggingUtils = loggingUtils;
     }
 
-    public RegisterClientResponseBody registerClient (RegisterClientRequestBody registerClientRequestBody) {
+    protected void validateClient(RegisterClientRequestBody registerClientRequestBody) throws NameCannotBeBlank, InvalidPasswordException {
+        if(registerClientRequestBody.getName() == null)
+            throw new NameCannotBeBlank();
+
+        if(registerClientRequestBody.getEmail() == null) {
+            throw new BadCredentialsException("Email Cannot be null");
+        }
+
         if (clientRepository.findByEmail(registerClientRequestBody.getEmail()).isPresent()) {
             throw new EmailAlreadyExists();
         }
+        validatePassword(registerClientRequestBody.getPassword());
 
+    }
+
+    protected void validatePassword (String password) throws InvalidPasswordException {
+        if (password == null){
+            throw new InvalidPasswordException("Password is invalid");
+        }
+        if (password.length() < 8){
+            throw new InvalidPasswordException("Password must contain at least 8 characters");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new InvalidPasswordException("Password must contain at least one lowercase letter.");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new InvalidPasswordException("Password must contain at least one uppercase letter.");
+        }
+        if (!password.matches(".*[!@#$%^&*()].*")) {
+            throw new InvalidPasswordException("Password must contain at least one special character: !@#$%^&*().");
+        }
+        if (!password.matches(".*[0-9].*")) {
+            throw new InvalidPasswordException("Password must contain at least one digit");
+        }
+    }
+
+    protected Client saveClientDetailsToClientRepository (RegisterClientRequestBody registerClientRequestBody){
         Client client = new Client(
-                registerClientRequestBody.getName(),
-                registerClientRequestBody.getEmail(),
-                encoder.encode(registerClientRequestBody.getPassword()
+                registerClientRequestBody.getName().trim(),
+                registerClientRequestBody.getEmail().trim(),
+                encoder.encode(registerClientRequestBody.getPassword().trim()
                 )
         );
-
         client.setRole(Role.USER);
 
         Client createdClient = clientRepository.save(client);
+        return createdClient;
+    }
 
+    protected String generateJwtToken(Client createdClient) {
         UserDetailsImpl userDetailsImpl = new UserDetailsImpl(
                 createdClient.getId(),
                 createdClient.getName(),
@@ -96,17 +133,28 @@ public class ClientService {
         );
 
         String jwt = jwtUtils.generateJwtToken(userDetailsImpl);
+        return jwt;
+    }
 
-        //creating a default portfolio
+    protected void createDefaultPortfolio (Client createdClient) {
         CreatePortfolioRequestBody createPortfolioRequestBody = new CreatePortfolioRequestBody();
-        createPortfolioRequestBody.setClientID(client.getId());
+        createPortfolioRequestBody.setClientID(createdClient.getId());
         createPortfolioRequestBody.setName("Default Portfolio");
 
         Portfolio newPortfolio = portfolioRequestBodyMapper.toPortfolio(createPortfolioRequestBody);
-        newPortfolio.setClient(client);
+        newPortfolio.setClient(createdClient);
         newPortfolio.setDefaultPortfolio(true);
 
-        portfolioRepository.save(newPortfolio);
+        Portfolio portfolio = portfolioRepository.save(newPortfolio);
+    }
+
+
+
+    public RegisterClientResponseBody registerClient (RegisterClientRequestBody registerClientRequestBody) throws InvalidPasswordException, NameCannotBeBlank {
+        validateClient(registerClientRequestBody);
+        Client createdClient = saveClientDetailsToClientRepository(registerClientRequestBody);
+        String jwt = generateJwtToken(createdClient);
+        createDefaultPortfolio(createdClient);
 
         RegisterClientResponseBody registerClientResponseBody = new RegisterClientResponseBody();
         registerClientResponseBody.setId(createdClient.getId());
@@ -148,8 +196,6 @@ public class ClientService {
         authenticateClientResponseBody.setRole(userDetails.getRole());
         return authenticateClientResponseBody;
     }
-
-
 
 
     public ClientDTO getClient(UUID id) {
