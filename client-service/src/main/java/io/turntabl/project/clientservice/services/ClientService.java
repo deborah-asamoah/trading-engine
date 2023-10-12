@@ -33,6 +33,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ClientService {
@@ -74,22 +76,34 @@ public class ClientService {
         this.loggingUtils = loggingUtils;
     }
 
-    protected void validateClient(RegisterClientRequestBody registerClientRequestBody) throws NameCannotBeBlank, InvalidPasswordException {
-        if(registerClientRequestBody.getName() == null)
+    protected void validateClientName(String name) throws NameCannotBeBlank{
+        if(name == null)
             throw new NameCannotBeBlank();
+    }
 
-        if(registerClientRequestBody.getEmail() == null) {
+    protected void validateClientEmail(String email) {
+        if(email == null) {
             throw new BadCredentialsException("Email Cannot be null");
         }
-
-        if (clientRepository.findByEmail(registerClientRequestBody.getEmail()).isPresent()) {
+        if (!isValidEmail(email)) {
+            throw new BadCredentialsException("Email is invalid or null");
+        }
+        if (clientRepository.findByEmail(email).isPresent()) {
             throw new EmailAlreadyExists();
         }
-        validatePassword(registerClientRequestBody.getPassword());
+
 
     }
 
-    protected void validatePassword (String password) throws InvalidPasswordException {
+    public boolean isValidEmail(String email) {
+        String regex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
+
+    protected void validateClientPassword (String password) throws InvalidPasswordException {
         if (password == null){
             throw new InvalidPasswordException("Password is invalid");
         }
@@ -150,8 +164,11 @@ public class ClientService {
 
 
 
-    public RegisterClientResponseBody registerClient (RegisterClientRequestBody registerClientRequestBody) throws InvalidPasswordException, NameCannotBeBlank {
-        validateClient(registerClientRequestBody);
+    public RegisterClientResponseBody registerClient (RegisterClientRequestBody registerClientRequestBody) throws NameCannotBeBlank, InvalidPasswordException {
+        validateClientName(registerClientRequestBody.getName());
+        validateClientEmail(registerClientRequestBody.getEmail());
+        validateClientPassword(registerClientRequestBody.getPassword());
+
         Client createdClient = saveClientDetailsToClientRepository(registerClientRequestBody);
         String jwt = generateJwtToken(createdClient);
         createDefaultPortfolio(createdClient);
